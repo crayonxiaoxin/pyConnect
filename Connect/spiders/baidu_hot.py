@@ -25,3 +25,10 @@ class BaiduHotSpider(scrapy.Spider):
                 './div[contains(@class,"trend_")]/div[contains(@class,"hot-index_")]/text()').get()
             item['hot_num'] = str(hot_num).strip()
             yield item
+
+# Bing => https://cn.bing.com/search?q=
+# //ol[@id="b_results"]/li/div[contains(@class,"b_title")]/h2[contains(string(),"_中国网")]
+
+# 中国网
+# //div[@id="articleBody"]/p    # web版
+# //div[contains(@class,"d_img")]   # m版
