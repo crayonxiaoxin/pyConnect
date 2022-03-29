@@ -17,3 +17,13 @@ class ConnectItem(scrapy.Item):
     img_url = scrapy.Field()
     hot_num = scrapy.Field()
     image_urls = scrapy.Field()
+
+
+class NewsItem(scrapy.Item):
+    title = scrapy.Field()
+    content = scrapy.Field()
+    pub_time = scrapy.Field()
+    source = scrapy.Field()
+    author = scrapy.Field()
+    url = scrapy.Field()
+    origin = scrapy.Field()
