@@ -49,38 +49,80 @@ class ZgwSpider(scrapy.Spider):
     # 中华网
     def parse_china_com(self, response, url):
         # https://news.china.com/socialgd/10000169/20220327/41785167.html
-        title = response.xpath('//h1[@id="chan_newsTitle"]/text()').get()
-        if title is not None:
-            content = response.xpath('//div[@id="chan_newsDetail"]').get()
-            pubtime = response.xpath('//div[@id="chan_newsInfo"]/text()[3]').get()
-            pubtime = pubtime.strip().replace("&nbsp;", "")
-            source = response.xpath('string(//span[@class="chan_newsInfo_source"])').get()
-            source = source.strip()
-            author = response.xpath('string(//span[@class="chan_newsInfo_author"])').get()
-            author = author.strip()
-            item = NewsItem()
-            item['title'] = title
-            item['content'] = str(content)
-            item['pub_time'] = pubtime
-            item['author'] = author
-            item['source'] = source
-            item['url'] = url
-            item['origin'] = "中华网"
-            next_link = response.xpath('//a[@class="allPage"]/@href').get()
-            if next_link is not None and next_link.find(".html") != -1:
-                yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next, cookies=None,
-                                     cb_kwargs={"item": item})
-            else:
-                print(item)
-                yield item
+        title_type1 = response.xpath('//h1[@id="chan_newsTitle"]/text()').get()
+        # https://news.china.com/domestic/945/20220330/41811858.html
+        title_type2 = response.xpath('//h1[contains(@class,"article_title")]/text()').get()
+        if title_type1 is not None:
+            yield from self.parse_china_com_type_1(response, title_type1, url)
+        elif title_type2 is not None:
+            yield from self.parse_china_com_type_2(response, title_type2, url)
 
-    # 中华网 - 正文分页
-    def parse_china_com_next(self, response, item):
+    def parse_china_com_type_1(self, response, title_type1, url):
+        content = response.xpath('//div[@id="chan_newsDetail"]').get()
+        pubtime = response.xpath('//div[@id="chan_newsInfo"]/text()[3]').get()
+        pubtime = pubtime.strip().replace("&nbsp;", "")
+        source = response.xpath('string(//span[@class="chan_newsInfo_source"])').get()
+        source = source.strip()
+        author = response.xpath('string(//span[@class="chan_newsInfo_author"])').get()
+        author = author.strip()
+        item = NewsItem()
+        item['title'] = title_type1
+        item['content'] = str(content)
+        item['pub_time'] = pubtime
+        item['author'] = author
+        item['source'] = source
+        item['url'] = url
+        item['origin'] = "中华网"
+        next_link = response.xpath('//a[@class="allPage"]/@href').get()
+        if next_link is not None and next_link.find(".html") != -1:
+            yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_1, cookies=None,
+                                 cb_kwargs={"item": item})
+        else:
+            print(item)
+            yield item
+
+    # 中华网 - 正文分页 - 类型1
+    def parse_china_com_next_1(self, response, item):
         content = response.xpath('//div[@id="chan_newsDetail"]').get()
         item['content'] += str(content)
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
         if next_link is not None and next_link.find(".html") != -1:
-            yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next, cookies=None,
+            yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_1, cookies=None,
+                                 cb_kwargs={"item": item})
+        else:
+            print(item)
+            yield item
+
+    def parse_china_com_type_2(self, response, title_type1, url):
+        content = response.xpath('//div[contains(@class,"article_content")]').get()
+        pubtime = response.xpath('//div[contains(@class,"article_info")]/span[@class="time"]/text()').get()
+        pubtime = pubtime.strip().replace("&nbsp;", "")
+        source = response.xpath('//div[contains(@class,"article_info")]/span[@class="source"]/a/text()').get()
+        source = source.strip()
+        author = ""
+        item = NewsItem()
+        item['title'] = title_type1
+        item['content'] = str(content)
+        item['pub_time'] = pubtime
+        item['author'] = author
+        item['source'] = source
+        item['url'] = url
+        item['origin'] = "中华网"
+        next_link = response.xpath('//a[@class="allPage"]/@href').get()
+        if next_link is not None and next_link.find(".html") != -1:
+            yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_2, cookies=None,
+                                 cb_kwargs={"item": item})
+        else:
+            print(item)
+            yield item
+
+    # 中华网 - 正文分页 - 类型2
+    def parse_china_com_next_2(self, response, item):
+        content = response.xpath('//div[contains(@class,"article_content")]').get()
+        item['content'] += str(content)
+        next_link = response.xpath('//a[@class="allPage"]/@href').get()
+        if next_link is not None and next_link.find(".html") != -1:
+            yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_2, cookies=None,
                                  cb_kwargs={"item": item})
         else:
             print(item)

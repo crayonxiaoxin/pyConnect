@@ -65,7 +65,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'Connect.pipelines.ConnectPipeline': 300,
+    # 'Connect.pipelines.ConnectPipeline': 300,
     'Connect.pipelines.MysqlPipeline': 400,
     # 'Connect.pipelines.ImagePipeline': 300,
 }

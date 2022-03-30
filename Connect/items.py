@@ -8,15 +8,15 @@
 import scrapy
 
 
-class ConnectItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    title = scrapy.Field()
-    link = scrapy.Field()
-    desc = scrapy.Field()
-    img_url = scrapy.Field()
-    hot_num = scrapy.Field()
-    image_urls = scrapy.Field()
+# class ConnectItem(scrapy.Item):
+#     # define the fields for your item here like:
+#     # name = scrapy.Field()
+#     title = scrapy.Field()
+#     link = scrapy.Field()
+#     desc = scrapy.Field()
+#     img_url = scrapy.Field()
+#     hot_num = scrapy.Field()
+#     image_urls = scrapy.Field()
 
 
 class NewsItem(scrapy.Item):
