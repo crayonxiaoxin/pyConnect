@@ -6,8 +6,8 @@ from Connect.items import NewsItem
 
 class ZgwSpider(scrapy.Spider):
     name = 'zgw'
-    allowed_domains = ['china.com.cn', 'china.com', 'dbw.cn', 'hixin.cc']
-    start_urls = ['https://hixin.cc/testing']
+    allowed_domains = ['china.com.cn', 'china.com', 'dbw.cn', 'hixin.cc', 'thekonnect.cn']
+    start_urls = ['https://thekonnect.cn/api-spider/']
 
     def parse(self, response, **kwargs):
         result = json.loads(response.text)
@@ -56,6 +56,10 @@ class ZgwSpider(scrapy.Spider):
         item = NewsItem()
         item['title'] = title
         content = response.xpath('//div[@id="articleBody"]').get()
+        video = response.xpath('string(//div[@id="videoarea"])').get()
+        video_element = response.xpath('//div[@id="videoarea"]').get()
+        if video is None or video == "":
+            content = content.replace(video_element, '')
         item['content'] = str(content)
         pubtime = response.xpath('//span[@id="pubtime_baidu"]/text()').get()
         item['pub_time'] = pubtime.replace('发布时间：', '')
