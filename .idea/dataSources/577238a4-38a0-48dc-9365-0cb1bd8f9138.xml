@@ -981,76 +981,127 @@ sys|schema||mysql.sys|localhost|TRIGGER|G</Grants>
       <Engine>InnoDB</Engine>
       <CollationName>utf8mb4_unicode_ci</CollationName>
     </table>
-    <table id="284" parent="278" name="spider_news">
+    <table id="284" parent="278" name="spider_baidu_hot">
       <Engine>InnoDB</Engine>
       <CollationName>utf8mb4_general_ci</CollationName>
     </table>
-    <column id="285" parent="283" name="id">
+    <table id="285" parent="278" name="spider_news">
+      <Engine>InnoDB</Engine>
+      <CollationName>utf8mb4_general_ci</CollationName>
+    </table>
+    <column id="286" parent="283" name="id">
       <DataType>int|0s</DataType>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <SequenceIdentity>null</SequenceIdentity>
     </column>
-    <column id="286" parent="283" name="name">
+    <column id="287" parent="283" name="name">
       <DataType>varchar(30)|0s</DataType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
-    <key id="287" parent="283" name="PRIMARY">
+    <key id="288" parent="283" name="PRIMARY">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
     </key>
-    <column id="288" parent="284" name="id">
+    <column id="289" parent="284" name="id">
       <DataType>int|0s</DataType>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <SequenceIdentity>null</SequenceIdentity>
     </column>
-    <column id="289" parent="284" name="title">
+    <column id="290" parent="284" name="title">
       <DataType>varchar(255)|0s</DataType>
       <DefaultExpression>&apos;&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
-    <column id="290" parent="284" name="content">
+    <column id="291" parent="284" name="content">
       <DataType>text|0s</DataType>
       <Position>3</Position>
     </column>
-    <column id="291" parent="284" name="author">
+    <column id="292" parent="284" name="image">
+      <DataType>text|0s</DataType>
+      <Position>4</Position>
+    </column>
+    <column id="293" parent="284" name="url">
+      <DataType>text|0s</DataType>
+      <Position>5</Position>
+    </column>
+    <column id="294" parent="284" name="hot_num">
+      <DataType>int|0s</DataType>
+      <DefaultExpression>0</DefaultExpression>
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+    </column>
+    <column id="295" parent="284" name="datetime">
+      <DataType>datetime|0s</DataType>
+      <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
+      <NotNull>1</NotNull>
+      <Position>7</Position>
+    </column>
+    <key id="296" parent="284" name="PRIMARY">
+      <ColNames>id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <Primary>1</Primary>
+    </key>
+    <column id="297" parent="285" name="id">
+      <DataType>int|0s</DataType>
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <SequenceIdentity>null</SequenceIdentity>
+    </column>
+    <column id="298" parent="285" name="title">
+      <DataType>varchar(255)|0s</DataType>
+      <DefaultExpression>&apos;&apos;</DefaultExpression>
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+    </column>
+    <column id="299" parent="285" name="content">
+      <DataType>text|0s</DataType>
+      <Position>3</Position>
+    </column>
+    <column id="300" parent="285" name="author">
       <DataType>varchar(255)|0s</DataType>
       <DefaultExpression>&apos;&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>4</Position>
     </column>
-    <column id="292" parent="284" name="source">
+    <column id="301" parent="285" name="source">
       <DataType>varchar(255)|0s</DataType>
       <DefaultExpression>&apos;&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>5</Position>
     </column>
-    <column id="293" parent="284" name="pub_time">
+    <column id="302" parent="285" name="pub_time">
       <DataType>datetime|0s</DataType>
       <NotNull>1</NotNull>
       <Position>6</Position>
     </column>
-    <column id="294" parent="284" name="url">
+    <column id="303" parent="285" name="url">
       <DataType>text|0s</DataType>
       <Position>7</Position>
     </column>
-    <column id="295" parent="284" name="origin">
+    <column id="304" parent="285" name="origin">
       <DataType>varchar(255)|0s</DataType>
       <DefaultExpression>&apos;&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>8</Position>
     </column>
-    <column id="296" parent="284" name="datetime">
-      <DataType>datetime|0s</DataType>
-      <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
+    <column id="305" parent="285" name="hot_title">
+      <DataType>varchar(255)|0s</DataType>
+      <DefaultExpression>&apos;&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>9</Position>
     </column>
-    <key id="297" parent="284" name="PRIMARY">
+    <column id="306" parent="285" name="datetime">
+      <DataType>datetime|0s</DataType>
+      <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
+      <NotNull>1</NotNull>
+      <Position>10</Position>
+    </column>
+    <key id="307" parent="285" name="PRIMARY">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>

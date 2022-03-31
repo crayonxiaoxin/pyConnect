@@ -13,22 +13,27 @@ class ConnectSpider(scrapy.Spider):
     china_com = "//news.china.com/"
     dbw_cn = "//m.dbw.cn/"
 
-    # scrapy crawl connect -a url=https://thekonnect.cn
-    def __init__(self, name=None, url=None, **kwargs):
+    # scrapy crawl connect -a url=https://thekonnect.cn -a hot_id=1
+    def __init__(self, name=None, url=None, hot_id=None, **kwargs):
         super().__init__(name, **kwargs)
-        if url is not None:
-            if url.find(self.china_com_cn) != -1 or url.find(self.china_com) != -1 or url.find(self.dbw_cn) != -1:
-                self.start_urls = [url]
+        self.hot_id = hot_id
+        if hot_id is not None and str(hot_id).isnumeric() and int(hot_id) > 0:
+            if url is not None:
+                if url.find(self.china_com_cn) != -1 or url.find(self.china_com) != -1 or url.find(self.dbw_cn) != -1:
+                    self.start_urls = [url]
+                else:
+                    print("不支持爬取：%s" % url)
             else:
-                print("不支持爬取：%s" % url)
+                print("没有网页需要爬取")
         else:
-            print("没有网页需要爬取")
+            print("热搜ID不能为空")
 
     def url_support(self, url):
         pass
 
     def parse(self, response, **kwargs):
         # print(response.request.url)
+        # print("hot_id: "+self.hot_id)
         url = response.request.url
         # 中国网
         if url.find(self.china_com_cn) != -1:
@@ -56,6 +61,7 @@ class ConnectSpider(scrapy.Spider):
     # 中国网 - mobile
     def parse_china_com_cn_mobile(self, response, title_mobile, url):
         item = NewsItem()
+        item['hot_id'] = self.hot_id
         item['title'] = title_mobile
         content = response.xpath('//div[contains(@class,"d_img")]').get()
         item['content'] = str(content)
@@ -72,6 +78,7 @@ class ConnectSpider(scrapy.Spider):
     # 中国网 - web
     def parse_china_com_cn_web(self, response, title, url):
         item = NewsItem()
+        item['hot_id'] = self.hot_id
         item['title'] = title
         content = response.xpath('//div[@id="articleBody"]').get()
         video = response.xpath('string(//div[@id="videoarea"])').get()
@@ -103,6 +110,7 @@ class ConnectSpider(scrapy.Spider):
     # 中华网 - 类型1
     def parse_china_com_type_1(self, response, title_type1, url):
         item = NewsItem()
+        item['hot_id'] = self.hot_id
         item['title'] = title_type1
         content = response.xpath('//div[@id="chan_newsDetail"]').get()
         item['content'] = str(content)
@@ -137,6 +145,7 @@ class ConnectSpider(scrapy.Spider):
     # 中华网 - 类型2
     def parse_china_com_type_2(self, response, title_type1, url):
         item = NewsItem()
+        item['hot_id'] = self.hot_id
         item['title'] = title_type1
         content = response.xpath('//div[contains(@class,"article_content")]').get()
         item['content'] = str(content)
@@ -172,6 +181,7 @@ class ConnectSpider(scrapy.Spider):
         title = response.xpath('//div[@id="end-box"]/h1[1]/text()').get()
         if title is not None:
             item = NewsItem()
+            item['hot_id'] = self.hot_id
             item['title'] = title
             content = response.xpath('//div[@class="zhengw"]').get()
             item['content'] = str(content)

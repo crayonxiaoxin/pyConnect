@@ -8,15 +8,13 @@
 import scrapy
 
 
-# class ConnectItem(scrapy.Item):
-#     # define the fields for your item here like:
-#     # name = scrapy.Field()
-#     title = scrapy.Field()
-#     link = scrapy.Field()
-#     desc = scrapy.Field()
-#     img_url = scrapy.Field()
-#     hot_num = scrapy.Field()
-#     image_urls = scrapy.Field()
+class BaiduHotItem(scrapy.Item):
+    title = scrapy.Field()
+    link = scrapy.Field()
+    desc = scrapy.Field()
+    img_url = scrapy.Field()
+    hot_num = scrapy.Field()
+    image_urls = scrapy.Field()
 
 
 class NewsItem(scrapy.Item):
@@ -27,3 +25,4 @@ class NewsItem(scrapy.Item):
     author = scrapy.Field()
     url = scrapy.Field()
     origin = scrapy.Field()
+    hot_id = scrapy.Field()
