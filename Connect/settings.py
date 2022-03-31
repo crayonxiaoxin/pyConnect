@@ -14,7 +14,7 @@ BOT_NAME = 'Connect'
 SPIDER_MODULES = ['Connect.spiders']
 NEWSPIDER_MODULE = 'Connect.spiders'
 
-LOG_LEVEL = 'ERROR'
+# LOG_LEVEL = 'ERROR'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'Connect (+http://www.yourdomain.com)'
@@ -97,3 +97,4 @@ ITEM_PIPELINES = {
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 FEED_EXPORT_ENCODING = 'utf-8'
+MEDIA_ALLOW_REDIRECTS = True

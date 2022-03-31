@@ -96,13 +96,19 @@ class MysqlPipeline(object):
             """ % (tmp_item['title'], tmp_item['content'], tmp_item['author'], tmp_item['source'],
                    tmp_item['pub_time'], tmp_item['url'], tmp_item['origin'], hot_title)
             res = self.cursor.execute(sql)
+            # insert_id() 要在 commit() 之前，否则为 0
+            insert_id = self.mysql.insert_id()
             self.mysql.commit()
             if res is not None and res is not False:
                 print('已保存："%s"' % tmp_item['title'])
+                preview_url = "https://thekonnect.cn/preview?id=%s" % str(insert_id)
+                print('<a href="%s" target="_blank">%s</a>' % (preview_url, preview_url))
             else:
                 print('保存失败："%s"' % tmp_item['title'])
         else:
             print('已存在，不保存："%s"' % tmp_item['title'])
+            preview_url = "https://thekonnect.cn/preview?id=%s" % str(exists[0])
+            print('<a href="%s" target="_blank">%s</a>' % (preview_url, preview_url))
 
     def insert_baidu_hot_item(self, item):
         tmp_item = dict(item)

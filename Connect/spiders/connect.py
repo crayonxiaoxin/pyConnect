@@ -1,6 +1,7 @@
 import scrapy
 
 from Connect.items import NewsItem
+import html
 
 
 class ConnectSpider(scrapy.Spider):
@@ -11,7 +12,16 @@ class ConnectSpider(scrapy.Spider):
     # url 规则
     china_com_cn = "china.com.cn/"
     china_com = "//news.china.com/"
-    dbw_cn = "//m.dbw.cn/"
+    dbw_cn = "dbw.cn/"
+
+    dbw_cn_origin = ["finance.dbw.cn", "house.dbw.cn", "legal.dbw.cn", "internal.dbw.cn", "international.dbw.cn",
+                     "story.dbw.cn",
+                     "heilongjiang.dbw.cn", "edu.dbw.cn", "health.dbw.cn", "tour.dbw.cn", "ms.dbw.cn", "society.dbw.cn",
+                     "sports.dbw.cn", "entertainment.dbw.cn", "tv.dbw.cn"]
+    dbw_cn_redirect = ["m.dbw.cn/caijing", "m.dbw.cn/fangchan", "m.dbw.cn/fazhi", "m.dbw.cn/guonei", "m.dbw.cn/guoji",
+                       "m.dbw.cn/harbin", "m.dbw.cn/heilongjiang", "m.dbw.cn/jiaoyu", "m.dbw.cn/jiankang",
+                       "m.dbw.cn/lvyou",
+                       "m.dbw.cn/minsheng", "m.dbw.cn/shehui", "m.dbw.cn/tiyu", "m.dbw.cn/yule", "m.dbw.cn/sppd"]
 
     # scrapy crawl connect -a url=https://thekonnect.cn -a hot_id=1
     def __init__(self, name=None, url=None, hot_id=None, **kwargs):
@@ -20,6 +30,7 @@ class ConnectSpider(scrapy.Spider):
         if hot_id is not None and str(hot_id).isnumeric() and int(hot_id) > 0:
             if url is not None:
                 if url.find(self.china_com_cn) != -1 or url.find(self.china_com) != -1 or url.find(self.dbw_cn) != -1:
+                    url = self.url_support(url)
                     self.start_urls = [url]
                 else:
                     print("不支持爬取：%s" % url)
@@ -29,7 +40,14 @@ class ConnectSpider(scrapy.Spider):
             print("热搜ID不能为空")
 
     def url_support(self, url):
-        pass
+        if url.find(self.dbw_cn) != -1:
+            for i in range(len(self.dbw_cn_origin)):
+                o_u = self.dbw_cn_origin[i]
+                if url.find(o_u) != -1:
+                    url = url.replace(o_u, self.dbw_cn_redirect[i])
+                    break
+            pass
+        return url
 
     def parse(self, response, **kwargs):
         # print(response.request.url)
@@ -64,11 +82,20 @@ class ConnectSpider(scrapy.Spider):
         item['hot_id'] = self.hot_id
         item['title'] = title_mobile
         content = response.xpath('//div[contains(@class,"d_img")]').get()
-        item['content'] = str(content)
+        item['content'] = html.escape(str(content))
         pubtime = response.xpath('//div[contains(@class,"d_time")]/span/text()').get()
-        item['pub_time'] = pubtime.strip()
+        if pubtime is not None:
+            pubtime = pubtime.strip
+        else:
+            pubtime = ""
+        item['pub_time'] = pubtime
         source = response.xpath('//div[contains(@class,"d_time")]/text()').get()
-        item['source'] = source.strip().replace('来源：', '')
+        if source is not None:
+            source = source.strip().replace('来源：', '')
+        else:
+            source = ""
+        item['pub_time'] = pubtime
+        item['source'] = source
         item['author'] = ""
         item['url'] = url
         item['origin'] = "中国网"
@@ -85,12 +112,20 @@ class ConnectSpider(scrapy.Spider):
         video_element = response.xpath('//div[@id="videoarea"]').get()
         if video is None or video == "":
             content = content.replace(video_element, '')
-        item['content'] = str(content)
+        item['content'] = html.escape(str(content))
         pubtime = response.xpath('//span[@id="pubtime_baidu"]/text()').get()
-        item['pub_time'] = pubtime.replace('发布时间：', '')
+        if pubtime is not None:
+            pubtime = pubtime.replace('发布时间：', '')
+        else:
+            pubtime = ""
+        item['pub_time'] = pubtime
         item['source'] = response.xpath('//span[@id="source_baidu"]/a/text()').get()
         author = response.xpath('//span[@id="author_baidu"]/text()').get()
-        item['author'] = author.replace('作者：', '')
+        if author is not None:
+            author = author.replace('作者：', '')
+        else:
+            author = ""
+        item['author'] = author
         item['url'] = url
         item['origin'] = "中国网"
         if content is not None:
@@ -113,13 +148,25 @@ class ConnectSpider(scrapy.Spider):
         item['hot_id'] = self.hot_id
         item['title'] = title_type1
         content = response.xpath('//div[@id="chan_newsDetail"]').get()
-        item['content'] = str(content)
+        item['content'] = html.escape(str(content))
         pubtime = response.xpath('//div[@id="chan_newsInfo"]/text()[3]').get()
-        item['pub_time'] = pubtime.strip().replace("&nbsp;", "")
+        if pubtime is not None:
+            pubtime = pubtime.strip().replace("&nbsp;", "")
+        else:
+            pubtime = ""
+        item['pub_time'] = pubtime
         source = response.xpath('string(//span[@class="chan_newsInfo_source"])').get()
+        if source is not None:
+            source = source.strip()
+        else:
+            source = ""
         item['source'] = source.strip()
         author = response.xpath('string(//span[@class="chan_newsInfo_author"])').get()
-        item['author'] = author.strip()
+        if author is not None:
+            author = author.strip()
+        else:
+            author = ""
+        item['author'] = author
         item['url'] = url
         item['origin'] = "中华网"
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
@@ -133,7 +180,8 @@ class ConnectSpider(scrapy.Spider):
     # 中华网 - 正文分页 - 类型1
     def parse_china_com_next_1(self, response, item):
         content = response.xpath('//div[@id="chan_newsDetail"]').get()
-        item['content'] += str(content)
+        if content is not None:
+            item['content'] += html.escape(str(content))
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
         if next_link is not None and next_link.find(".html") != -1:
             yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_1, cookies=None,
@@ -148,11 +196,19 @@ class ConnectSpider(scrapy.Spider):
         item['hot_id'] = self.hot_id
         item['title'] = title_type1
         content = response.xpath('//div[contains(@class,"article_content")]').get()
-        item['content'] = str(content)
+        item['content'] = html.escape(str(content))
         pubtime = response.xpath('//div[contains(@class,"article_info")]/span[@class="time"]/text()').get()
-        item['pub_time'] = pubtime.strip().replace("&nbsp;", "")
+        if pubtime is not None:
+            pubtime = pubtime.strip().replace("&nbsp;", "")
+        else:
+            pubtime = ""
+        item['pub_time'] = pubtime
         source = response.xpath('//div[contains(@class,"article_info")]/span[@class="source"]/a/text()').get()
-        item['source'] = source.strip()
+        if source is not None:
+            source = source.strip()
+        else:
+            source = ""
+        item['source'] = source
         item['author'] = ""
         item['url'] = url
         item['origin'] = "中华网"
@@ -167,7 +223,8 @@ class ConnectSpider(scrapy.Spider):
     # 中华网 - 正文分页 - 类型2
     def parse_china_com_next_2(self, response, item):
         content = response.xpath('//div[contains(@class,"article_content")]').get()
-        item['content'] += str(content)
+        if content is not None:
+            item['content'] += html.escape(str(content))
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
         if next_link is not None and next_link.find(".html") != -1:
             yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_2, cookies=None,
@@ -184,14 +241,22 @@ class ConnectSpider(scrapy.Spider):
             item['hot_id'] = self.hot_id
             item['title'] = title
             content = response.xpath('//div[@class="zhengw"]').get()
-            item['content'] = str(content)
+            item['content'] = html.escape(str(content))
             pubtime = response.xpath('//div[@class="time"]/text()[1]').get()
-            item['pub_time'] = pubtime.strip()
+            if pubtime is not None:
+                pubtime = pubtime.strip()
+            else:
+                pubtime = ""
+            item['pub_time'] = pubtime
             author_source = response.xpath('//span[@class="rl"]/text()').get()
-            author_source = str(author_source).split(" 　")
-            if len(author_source) == 2:
-                author = author_source[0].replace("编辑：", "")
-                source = author_source[1].replace("来源：", "")
+            if author_source is not None:
+                author_source = str(author_source).split(" 　")
+                if len(author_source) == 2:
+                    author = author_source[0].replace("编辑：", "")
+                    source = author_source[1].replace("来源：", "")
+                else:
+                    author = ""
+                    source = ""
             else:
                 author = ""
                 source = ""
