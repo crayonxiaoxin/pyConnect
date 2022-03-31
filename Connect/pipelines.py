@@ -29,18 +29,13 @@ import pymysql
 
 class MysqlPipeline(object):
     def open_spider(self, spider):
-        if spider.name == "zgw":
-            self.init_mysql()
-        pass
+        self.init_mysql()
 
     def close_spider(self, spider):
-        if spider.name == "zgw":
-            self.close_mysql()
-        pass
+        self.close_mysql()
 
     def process_item(self, item, spider):
-        if spider.name == "zgw":
-            self.insert_item(item)
+        self.insert_item(item)
         return item
 
     def init_mysql(self):
@@ -83,5 +78,11 @@ class MysqlPipeline(object):
                 ('%s','%s','%s','%s','%s','%s','%s')
             """ % (tmp_item['title'], tmp_item['content'], tmp_item['author'], tmp_item['source'],
                    tmp_item['pub_time'], tmp_item['url'], tmp_item['origin'])
-            self.cursor.execute(sql)
+            res = self.cursor.execute(sql)
             self.mysql.commit()
+            if res is not None and res is not False:
+                print('已保存："%s"' % tmp_item['title'])
+            else:
+                print('保存失败："%s"' % tmp_item['title'])
+        else:
+            print('已存在，不保存："%s"' % tmp_item['title'])

@@ -14,6 +14,8 @@ BOT_NAME = 'Connect'
 SPIDER_MODULES = ['Connect.spiders']
 NEWSPIDER_MODULE = 'Connect.spiders'
 
+LOG_LEVEL = 'ERROR'
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'Connect (+http://www.yourdomain.com)'
 
