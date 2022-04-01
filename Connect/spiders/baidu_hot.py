@@ -66,10 +66,10 @@ class BaiduHotSpider(scrapy.Spider):
                 if hot_num == "":
                     hot_num = "0"
                 item['hot_num'] = int(hot_num)
-                if link is not None and i == 0:
+                if link is not None and i == 1:
                     yield item
                     yield scrapy.Request(random_bd_url(item['title']), callback=self.parse_s_wd,
-                                         cb_kwargs={"item": item}, headers={"referer": response.url})
+                                         cb_kwargs={"item": item})
 
     def parse_s_wd(self, response, item):
         url = ""
@@ -95,8 +95,7 @@ class BaiduHotSpider(scrapy.Spider):
                 yield from self.parse_dbw_cn(response, url, item)
             else:
                 # print("不支持爬取：%s" % url)
-                yield scrapy.Request(url, callback=self.parse_bd, cb_kwargs={"origin_url": url, "item": item},
-                                     headers={"referer": response.url})
+                yield scrapy.Request(url, callback=self.parse_bd, cb_kwargs={"origin_url": url, "item": item})
 
     def parse_bd(self, response, origin_url, item):
         url = response.url
@@ -221,7 +220,7 @@ class BaiduHotSpider(scrapy.Spider):
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
         if next_link is not None and next_link.find(".html") != -1:
             yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_1, cookies=None,
-                                 cb_kwargs={"item": item}, headers={"referer": response.url})
+                                 cb_kwargs={"item": item})
         else:
             # print(item)
             yield item
@@ -234,7 +233,7 @@ class BaiduHotSpider(scrapy.Spider):
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
         if next_link is not None and next_link.find(".html") != -1:
             yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_1, cookies=None,
-                                 cb_kwargs={"item": item}, headers={"referer": response.url})
+                                 cb_kwargs={"item": item})
         else:
             # print(item)
             yield item
@@ -264,7 +263,7 @@ class BaiduHotSpider(scrapy.Spider):
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
         if next_link is not None and next_link.find(".html") != -1:
             yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_2, cookies=None,
-                                 cb_kwargs={"item": item}, headers={"referer": response.url})
+                                 cb_kwargs={"item": item})
         else:
             # print(item)
             yield item
@@ -277,7 +276,7 @@ class BaiduHotSpider(scrapy.Spider):
         next_link = response.xpath('//a[@class="allPage"]/@href').get()
         if next_link is not None and next_link.find(".html") != -1:
             yield scrapy.Request(response.urljoin(next_link), callback=self.parse_china_com_next_2, cookies=None,
-                                 cb_kwargs={"item": item}, headers={"referer": response.url})
+                                 cb_kwargs={"item": item})
         else:
             # print(item)
             yield item
@@ -296,8 +295,7 @@ class BaiduHotSpider(scrapy.Spider):
     def parse_dbw_cn(self, response, url, hot_item):
         redirect = self.dbw_url_redirect(response.request.url)
         if redirect is not None:
-            yield scrapy.Request(redirect, callback=self.parse_dbw_cn, cb_kwargs={"url": url, "hot_item": hot_item},
-                                 headers={"referer": response.url})
+            yield scrapy.Request(redirect, callback=self.parse_dbw_cn, cb_kwargs={"url": url, "hot_item": hot_item})
         else:
             title = response.xpath('//div[@id="end-box"]/h1[1]/text()').get()
             if title is not None:

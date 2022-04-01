@@ -41,11 +41,14 @@ DOWNLOAD_DELAY = 5
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'Accept-Language': 'zh-CN,zh;q=0.9',
+    "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     # https://www.jianshu.com/p/9974fc338242   br: 环境默认没有提供br格式的解压包导致乱码
     # 'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Encoding': 'gzip, deflate',
+    "Sec-Fetch-Mode": "navigate",
+    "Connection": "Keep-Alive",
+    "Referer": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=2&ch=&tn=baiduhome_pg&bar=&wd=123&oq=123&rsv_pq=896f886f000184f4&rsv_t=fdd2CqgBgjaepxfhicpCfrqeWVSXu9DOQY5WyyWqQYmsKOC%2Fl286S248elzxl%2BJhOKe2&rqlang=cn",
 }
 
 # Enable or disable spider middlewares
