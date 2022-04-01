@@ -4,6 +4,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+import time
 
 import pymysql
 
@@ -18,9 +19,12 @@ class MysqlPipeline(object):
 
     def process_item(self, item, spider):
         if spider.name == "baidu_hot":
-            self.insert_baidu_hot_item(item)
+            if item.get('hot_title') is not None or item.get('hot_id') is not None:
+                self.insert_news_item(item)
+            else:
+                self.insert_baidu_hot_item(item)
         else:
-            self.insert_item(item)
+            self.insert_news_item(item)
         return item
 
     def init_mysql(self, spider):
@@ -69,32 +73,38 @@ class MysqlPipeline(object):
         self.cursor.close()
         self.mysql.close()
 
-    def insert_item(self, item):
+    def insert_news_item(self, item):
         tmp_item = dict(item)
         sql0 = """
-            SELECT * FROM `spider_news` WHERE title = '%s' AND pub_time = '%s'
-        """ % (tmp_item['title'], tmp_item['pub_time'])
+            SELECT * FROM `spider_news` WHERE title = '%s' AND url = '%s'
+        """ % (tmp_item['title'], tmp_item['url'])
         self.cursor.execute(sql0)
         exists = self.cursor.fetchone()
         if exists is None:
-            hot_title = ""
-            hot_id = item['hot_id']
-            if hot_id is not None and str(hot_id).isnumeric() and int(hot_id) > 0:
-                sql_hot = """
-                SELECT * FROM `spider_baidu_hot` WHERE id = %d
-                """ % (int(hot_id))
-                self.cursor.execute(sql_hot)
-                hot_row = self.cursor.fetchone()
-                if hot_row is not None and hot_row is not False:
-                    hot_title = hot_row[1]
+            hot_title = item['hot_title']
+            if hot_title is None:
+                hot_id = item['hot_id']
+                if hot_id is not None and str(hot_id).isnumeric() and int(hot_id) > 0:
+                    sql_hot = """
+                    SELECT * FROM `spider_baidu_hot` WHERE id = %d
+                    """ % (int(hot_id))
+                    self.cursor.execute(sql_hot)
+                    hot_row = self.cursor.fetchone()
+                    if hot_row is not None and hot_row is not False:
+                        hot_title = hot_row[1]
+                else:
+                    hot_title = ""
 
+            pub_time = tmp_item['pub_time']
+            if pub_time == "":
+                pub_time = time.strftime("%Y-%m-%d %H:%M:%S")
             sql = """
                 INSERT INTO `spider_news`
                 (title,content,author,source,pub_time,url,origin,hot_title)
                 VALUES
                 ('%s','%s','%s','%s','%s','%s','%s','%s')
             """ % (tmp_item['title'], tmp_item['content'], tmp_item['author'], tmp_item['source'],
-                   tmp_item['pub_time'], tmp_item['url'], tmp_item['origin'], hot_title)
+                   pub_time, tmp_item['url'], tmp_item['origin'], hot_title)
             res = self.cursor.execute(sql)
             # insert_id() 要在 commit() 之前，否则为 0
             insert_id = self.mysql.insert_id()

@@ -26,3 +26,4 @@ class NewsItem(scrapy.Item):
     url = scrapy.Field()
     origin = scrapy.Field()
     hot_id = scrapy.Field()
+    hot_title = scrapy.Field()
