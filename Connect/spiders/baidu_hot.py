@@ -80,6 +80,8 @@ class BaiduHotSpider(scrapy.Spider):
             desc += "，百度强制重定向"
         if headers is not None:
             head = html.escape(str(headers))
+        else:
+            head = ""
         status_item['status_title'] = title
         status_item['status_desc'] = desc
         status_item['status_url'] = url
@@ -189,6 +191,7 @@ class BaiduHotSpider(scrapy.Spider):
         item['origin'] = "中国网"
         if content is not None:
             yield item
+            yield from self.not_support_parse(hot_item['title'], "中国网: 成功", url, response.request.headers)
         else:
             yield from self.not_support_parse(hot_item['title'], "中国网: 未支持该链接", url, response.request.headers)
 
@@ -222,6 +225,7 @@ class BaiduHotSpider(scrapy.Spider):
         item['origin'] = "中国网"
         if content is not None:
             yield item
+            yield from self.not_support_parse(hot_item['title'], "中国网: 成功", url, response.request.headers)
         else:
             yield from self.not_support_parse(hot_item['title'], "中国网: 未支持该链接", url, response.request.headers)
 
@@ -255,6 +259,7 @@ class BaiduHotSpider(scrapy.Spider):
         item['origin'] = "中国网"
         if content is not None:
             yield item
+            yield from self.not_support_parse(hot_item['title'], "中国网: 成功", url, response.request.headers)
         else:
             yield from self.not_support_parse(hot_item['title'], "中国网: 未支持该链接", url, response.request.headers)
 
@@ -266,8 +271,10 @@ class BaiduHotSpider(scrapy.Spider):
         title_type2 = response.xpath('//h1[contains(@class,"article_title")]/text()').get()
         if title_type1 is not None:
             yield from self.parse_china_com_type_1(response, title_type1, url, hot_item)
+            yield from self.not_support_parse(hot_item['title'], "中华网: 成功", url, response.request.headers)
         elif title_type2 is not None:
             yield from self.parse_china_com_type_2(response, title_type2, url, hot_item)
+            yield from self.not_support_parse(hot_item['title'], "中华网: 成功", url, response.request.headers)
         else:
             yield from self.not_support_parse(hot_item['title'], "中华网: 未支持该链接", url, response.request.headers)
 
@@ -408,6 +415,7 @@ class BaiduHotSpider(scrapy.Spider):
                 item['url'] = url
                 item['origin'] = "东北网"
                 yield item
+                yield from self.not_support_parse(hot_item['title'], "东北网: 成功", url, response.request.headers)
             else:
                 yield from self.not_support_parse(hot_item['title'], "东北网: 未支持该链接", url, response.request.headers)
 
@@ -439,6 +447,7 @@ class BaiduHotSpider(scrapy.Spider):
             item['url'] = url
             item['origin'] = "搜狐网"
             yield item
+            yield from self.not_support_parse(hot_item['title'], "搜狐网: 成功", url, response.request.headers)
         else:
             yield from self.not_support_parse(hot_item['title'], "搜狐网: 未支持该链接", url, response.request.headers)
 
@@ -475,5 +484,6 @@ class BaiduHotSpider(scrapy.Spider):
             item['url'] = url
             item['origin'] = "新浪网"
             yield item
+            yield from self.not_support_parse(hot_item['title'], "新浪网: 成功", url, response.request.headers)
         else:
             yield from self.not_support_parse(hot_item['title'], "新浪网: 未支持该链接", url, response.request.headers)
