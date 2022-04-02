@@ -83,7 +83,7 @@ class BaiduHotSpider(scrapy.Spider):
         status_item['status_title'] = title
         status_item['status_desc'] = desc
         status_item['status_url'] = url
-        status_item['status_headers'] = url
+        status_item['status_headers'] = head
         yield status_item
 
     def parse_s_wd(self, response, item):
