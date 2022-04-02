@@ -111,14 +111,14 @@ class MysqlPipeline(object):
             self.mysql.commit()
             if res is not None and res is not False:
                 print('已保存："%s"' % tmp_item['title'])
-                preview_url = "https://thekonnect.cn/preview?id=%s" % str(insert_id)
-                print('<a href="%s" target="_blank">%s</a>' % (preview_url, preview_url))
+                # preview_url = "https://thekonnect.cn/preview?id=%s" % str(insert_id)
+                # print('<a href="%s" target="_blank">%s</a>' % (preview_url, preview_url))
             else:
                 print('保存失败："%s"' % tmp_item['title'])
         else:
             print('已存在，不保存："%s"' % tmp_item['title'])
-            preview_url = "https://thekonnect.cn/preview?id=%s" % str(exists[0])
-            print('<a href="%s" target="_blank">%s</a>' % (preview_url, preview_url))
+            # preview_url = "https://thekonnect.cn/preview?id=%s" % str(exists[0])
+            # print('<a href="%s" target="_blank">%s</a>' % (preview_url, preview_url))
 
     def insert_baidu_hot_item(self, item):
         tmp_item = dict(item)

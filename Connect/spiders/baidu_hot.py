@@ -19,22 +19,21 @@ def random_bd_url(wd):
     return 'https://www.baidu.com/s?wd=%s&inputT=%d' % (wd, random.randint(500, 4000))
 
 
-site_names = ["中华网", "中国网", "东北网"]
+site_names = ["中华网", "中国网", "东北网", "新浪网", "新浪新闻", "搜狐网"]
 
 
 class BaiduHotSpider(scrapy.Spider):
     name = 'baidu_hot'
-    allowed_domains = ['baidu.com', 'china.com.cn', 'china.com', 'dbw.cn', 'hixin.cc', 'thekonnect.cn']
+    allowed_domains = ['baidu.com', 'china.com.cn', 'china.com', 'dbw.cn', 'sohu.com', 'sina.com.cn', 'hixin.cc',
+                       'thekonnect.cn']
     start_urls = ['https://top.baidu.com/board?tab=realtime']
-
-    custom_settings = {
-        'DOWNLOAD_DELAY': 5
-    }
 
     # url 规则
     china_com_cn = "china.com.cn/"
-    china_com = "//news.china.com/"
+    china_com = "china.com/"
     dbw_cn = "dbw.cn/"
+    sohu_com = "sohu.com/a/"
+    sina_com_cn = "sina.com.cn/"
 
     dbw_cn_origin = ["finance.dbw.cn", "house.dbw.cn", "legal.dbw.cn", "internal.dbw.cn", "international.dbw.cn",
                      "story.dbw.cn",
@@ -66,7 +65,7 @@ class BaiduHotSpider(scrapy.Spider):
                 if hot_num == "":
                     hot_num = "0"
                 item['hot_num'] = int(hot_num)
-                if link is not None and i == 1:
+                if link is not None:
                     yield item
                     yield scrapy.Request(random_bd_url(item['title']), callback=self.parse_s_wd,
                                          cb_kwargs={"item": item})
@@ -74,28 +73,41 @@ class BaiduHotSpider(scrapy.Spider):
     def parse_s_wd(self, response, item):
         url = ""
         for site_name in site_names:
-            group_urls = response.xpath(get_url_xpath_from_group(site_name)).getall()
-            normal_urls = response.xpath(get_url_xpath_from_normal(site_name)).getall()
+            group_rule = get_url_xpath_from_group(site_name)
+            normal_rule = get_url_xpath_from_normal(site_name)
+            group_urls = response.xpath(group_rule).getall()
+            normal_urls = response.xpath(normal_rule).getall()
             if len(group_urls) > 0:
                 url = group_urls[0]
+                print("xpath规则：%s" % group_rule)
+                print(group_urls)
+                print("符合规则的链接：%s" % url)
                 break
             elif len(normal_urls) > 0:
                 url = normal_urls[0]
+                print("xpath规则：%s" % normal_rule)
+                print(normal_urls)
+                print("符合规则的链接：%s" % url)
                 break
-        print("符合规则的链接：%s" % url)
+
         if url != "":
-            # 中国网
-            if url.find(self.china_com_cn) != -1:
-                yield from self.parse_china_com_cn(response, url, item)
-            # 中华网
-            elif url.find(self.china_com) != -1:
-                yield from self.parse_china_com(response, url, item)
-            # 东北网
-            elif url.find(self.dbw_cn) != -1:
-                yield from self.parse_dbw_cn(response, url, item)
-            else:
-                # print("不支持爬取：%s" % url)
-                yield scrapy.Request(url, callback=self.parse_bd, cb_kwargs={"origin_url": url, "item": item})
+            # # 中国网
+            # if url.find(self.china_com_cn) != -1:
+            #     yield from self.parse_china_com_cn(response, url, item)
+            # # 中华网
+            # elif url.find(self.china_com) != -1:
+            #     yield from self.parse_china_com(response, url, item)
+            # # 东北网
+            # elif url.find(self.dbw_cn) != -1:
+            #     yield from self.parse_dbw_cn(response, url, item)
+            # # 搜狐网
+            # elif url.find(self.sohu_com) != -1:
+            #     yield from self.parse_sohu_com(response, url, item)
+            # else:
+            yield scrapy.Request(url, callback=self.parse_bd, cb_kwargs={"origin_url": url, "item": item})
+        else:
+            print("链接不在规则列表中：%s" % url)
+            print("百度搜索链接：%s" % response.url)
 
     def parse_bd(self, response, origin_url, item):
         url = response.url
@@ -108,6 +120,12 @@ class BaiduHotSpider(scrapy.Spider):
         # 东北网
         elif url.find(self.dbw_cn) != -1:
             yield from self.parse_dbw_cn(response, url, item)
+        # 新浪网
+        elif url.find(self.sina_com_cn) != -1:
+            yield from self.parse_sina_com_cn(response, url, item)
+        # 搜狐网
+        elif url.find(self.sohu_com) != -1:
+            yield from self.parse_sohu_com(response, url, item)
         else:
             print("不支持爬取：%s" % url)
 
@@ -117,10 +135,14 @@ class BaiduHotSpider(scrapy.Spider):
         title = response.xpath('//h1[@class="articleTitle"]/text()').get()
         # http://henan.china.com.cn/m/2022-03/29/content_41919531.html
         title_mobile = response.xpath('//div[contains(@class,"d_title")]/text()').get()
+        # http://zjnews.china.com.cn/yuanchuan/2022-04-02/334005.html
+        title_zjnews = response.xpath('//div[contains(@class,"zuoce")]/div[@class="title"]/text()').get()
         if title is not None:
             yield from self.parse_china_com_cn_web(response, title, url, hot_item)
         elif title_mobile is not None:
             yield from self.parse_china_com_cn_mobile(response, title_mobile, url, hot_item)
+        elif title_zjnews is not None:
+            yield from self.parse_china_com_cn_zjnews(response, title_zjnews, url, hot_item)
 
     # 中国网 - mobile
     def parse_china_com_cn_mobile(self, response, title_mobile, url, hot_item):
@@ -174,6 +196,37 @@ class BaiduHotSpider(scrapy.Spider):
         else:
             author = ""
         item['author'] = author
+        item['url'] = url
+        item['origin'] = "中国网"
+        if content is not None:
+            yield item
+
+    # 中国网 - web zjnews
+    def parse_china_com_cn_zjnews(self, response, title, url, hot_item):
+        item = NewsItem()
+        item['hot_title'] = hot_item['title']
+        item['title'] = title
+        content = response.xpath('//div[contains(@class,"pimg")]').get()
+        rexian = response.xpath('//p[contains(@class,"rexian")]').get()
+        laiyuan = response.xpath('//p[contains(@class,"laiYuan")]').get()
+        if rexian is None or rexian == "":
+            content = content.replace(rexian, '')
+        if laiyuan is None or laiyuan == "":
+            content = content.replace(laiyuan, '')
+        item['content'] = html.escape(str(content))
+        pubtime = response.xpath('//div[contains(@class,"issue")]/text()').get()
+        if pubtime is not None:
+            pubtime = pubtime.replace('发布时间', '').replace('&nbsp;', '').strip()
+        else:
+            pubtime = ""
+        item['pub_time'] = pubtime
+        source = response.xpath('//div[contains(@class,"issue")]/span[contains(@class,"username")]/text()').get()
+        if source is not None:
+            source = source.replace('&nbsp;', '').replace('·  |', '').strip()
+        else:
+            source = ""
+        item['source'] = source
+        item['author'] = ""
         item['url'] = url
         item['origin'] = "中国网"
         if content is not None:
@@ -327,3 +380,66 @@ class BaiduHotSpider(scrapy.Spider):
                 item['url'] = url
                 item['origin'] = "东北网"
                 yield item
+
+    # 搜狐网
+    def parse_sohu_com(self, response, url, hot_item):
+        title = response.xpath('string(//div[@class="text-title"]/h1/text())').get()
+        if title is not None:
+            item = NewsItem()
+            item['hot_title'] = hot_item['title']
+            item['title'] = title.replace('\n', "").replace('\t', "").strip()
+            content = response.xpath('//article').get()
+            backsouhu = response.xpath('//a[@id="backsohucom"]').get()
+            if content is not None and backsouhu is not None:
+                content = content.replace(backsouhu, "")
+            item['content'] = html.escape(str(content))
+            pubtime = response.xpath('//span[@id="news-time"]/text()').get()
+            if pubtime is not None:
+                pubtime = pubtime.strip()
+            else:
+                pubtime = ""
+            item['pub_time'] = pubtime
+            author_source = response.xpath('//div[@id="user-info"]/h4/a/text()').get()
+            if author_source is not None:
+                author = source = author_source
+            else:
+                author = source = ""
+            item['author'] = author
+            item['source'] = source
+            item['url'] = url
+            item['origin'] = "搜狐网"
+            yield item
+
+    # 新浪网 新浪新闻
+    def parse_sina_com_cn(self, response, url, hot_item):
+        title = response.xpath('//h1[@class="main-title"]/text()').get()
+        if title is not None:
+            item = NewsItem()
+            item['hot_title'] = hot_item['title']
+            item['title'] = title
+            content = response.xpath('//div[@id="article"]').get()
+            sina_notice = response.xpath('//div[@class="article-notice"]').get()
+            if content is not None and sina_notice is not None:
+                content = content.replace(sina_notice, "")
+            wap_special = response.xpath('//div[@class="wap_special"]').get()
+            if content is not None and wap_special is not None:
+                content = content.replace(wap_special, "")
+            item['content'] = html.escape(str(content))
+            pubtime = response.xpath('//div[@class="date-source"]/span[@class="date"]/text()').get()
+            if pubtime is not None:
+                pubtime = pubtime.strip().replace('年', '-').replace('月', '-').replace('日', '-')
+                pubtime += ":00"
+            else:
+                pubtime = ""
+            item['pub_time'] = pubtime
+            source = response.xpath('//div[@class="date-source"]/a[contains(@class,"source")]/text()').get()
+            if source is None:
+                source = ""
+            author = response.xpath('//div[@class="date-source"]/span[contains(@class,"author")]/a/text()').get()
+            if author is None:
+                author = ""
+            item['author'] = author
+            item['source'] = source
+            item['url'] = url
+            item['origin'] = "新浪网"
+            yield item
