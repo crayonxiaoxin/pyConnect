@@ -4,7 +4,7 @@ import random
 
 import scrapy
 
-from Connect.items import BaiduHotItem, NewsItem
+from Connect.items import BaiduHotItem, NewsItem, StatusItem
 
 
 def get_url_xpath_from_normal(name):
@@ -69,6 +69,22 @@ class BaiduHotSpider(scrapy.Spider):
                     yield item
                     yield scrapy.Request(random_bd_url(item['title']), callback=self.parse_s_wd,
                                          cb_kwargs={"item": item})
+                else:
+                    yield from self.not_support_parse(item['title'], "没有找到链接", response.request.headers)
+
+    def not_support_parse(self, title, desc="", url="", headers=None):
+        status_item = StatusItem()
+        if url.find("//wappass.baidu.com/") != -1:
+            desc += "，跳百度安全验证"
+        elif url == "https://www.baidu.com/":
+            desc += "，百度强制重定向"
+        if headers is not None:
+            head = html.escape(str(headers))
+        status_item['status_title'] = title
+        status_item['status_desc'] = desc
+        status_item['status_url'] = url
+        status_item['status_headers'] = url
+        yield status_item
 
     def parse_s_wd(self, response, item):
         url = ""
@@ -108,6 +124,7 @@ class BaiduHotSpider(scrapy.Spider):
         else:
             print("链接不在规则列表中：%s" % url)
             print("百度搜索链接：%s" % response.url)
+            yield from self.not_support_parse(item['title'], "链接不在规则列表中", response.url, response.request.headers)
 
     def parse_bd(self, response, origin_url, item):
         url = response.url
@@ -128,6 +145,7 @@ class BaiduHotSpider(scrapy.Spider):
             yield from self.parse_sohu_com(response, url, item)
         else:
             print("不支持爬取：%s" % url)
+            yield from self.not_support_parse(item['title'], "链接不在规则列表中", url, response.request.headers)
 
     # 中国网
     def parse_china_com_cn(self, response, url, hot_item):
@@ -143,6 +161,8 @@ class BaiduHotSpider(scrapy.Spider):
             yield from self.parse_china_com_cn_mobile(response, title_mobile, url, hot_item)
         elif title_zjnews is not None:
             yield from self.parse_china_com_cn_zjnews(response, title_zjnews, url, hot_item)
+        else:
+            yield from self.not_support_parse(hot_item['title'], "中国网: 未支持该链接", url, response.request.headers)
 
     # 中国网 - mobile
     def parse_china_com_cn_mobile(self, response, title_mobile, url, hot_item):
@@ -169,6 +189,8 @@ class BaiduHotSpider(scrapy.Spider):
         item['origin'] = "中国网"
         if content is not None:
             yield item
+        else:
+            yield from self.not_support_parse(hot_item['title'], "中国网: 未支持该链接", url, response.request.headers)
 
     # 中国网 - web
     def parse_china_com_cn_web(self, response, title, url, hot_item):
@@ -200,6 +222,8 @@ class BaiduHotSpider(scrapy.Spider):
         item['origin'] = "中国网"
         if content is not None:
             yield item
+        else:
+            yield from self.not_support_parse(hot_item['title'], "中国网: 未支持该链接", url, response.request.headers)
 
     # 中国网 - web zjnews
     def parse_china_com_cn_zjnews(self, response, title, url, hot_item):
@@ -231,6 +255,8 @@ class BaiduHotSpider(scrapy.Spider):
         item['origin'] = "中国网"
         if content is not None:
             yield item
+        else:
+            yield from self.not_support_parse(hot_item['title'], "中国网: 未支持该链接", url, response.request.headers)
 
     # 中华网
     def parse_china_com(self, response, url, hot_item):
@@ -242,6 +268,8 @@ class BaiduHotSpider(scrapy.Spider):
             yield from self.parse_china_com_type_1(response, title_type1, url, hot_item)
         elif title_type2 is not None:
             yield from self.parse_china_com_type_2(response, title_type2, url, hot_item)
+        else:
+            yield from self.not_support_parse(hot_item['title'], "中华网: 未支持该链接", url, response.request.headers)
 
     # 中华网 - 类型1
     def parse_china_com_type_1(self, response, title_type1, url, hot_item):
@@ -380,6 +408,8 @@ class BaiduHotSpider(scrapy.Spider):
                 item['url'] = url
                 item['origin'] = "东北网"
                 yield item
+            else:
+                yield from self.not_support_parse(hot_item['title'], "东北网: 未支持该链接", url, response.request.headers)
 
     # 搜狐网
     def parse_sohu_com(self, response, url, hot_item):
@@ -409,6 +439,8 @@ class BaiduHotSpider(scrapy.Spider):
             item['url'] = url
             item['origin'] = "搜狐网"
             yield item
+        else:
+            yield from self.not_support_parse(hot_item['title'], "搜狐网: 未支持该链接", url, response.request.headers)
 
     # 新浪网 新浪新闻
     def parse_sina_com_cn(self, response, url, hot_item):
@@ -443,3 +475,5 @@ class BaiduHotSpider(scrapy.Spider):
             item['url'] = url
             item['origin'] = "新浪网"
             yield item
+        else:
+            yield from self.not_support_parse(hot_item['title'], "新浪网: 未支持该链接", url, response.request.headers)

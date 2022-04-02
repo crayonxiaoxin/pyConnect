@@ -27,3 +27,10 @@ class NewsItem(scrapy.Item):
     origin = scrapy.Field()
     hot_id = scrapy.Field()
     hot_title = scrapy.Field()
+
+
+class StatusItem(scrapy.Item):
+    status_title = scrapy.Field()
+    status_desc = scrapy.Field()
+    status_url = scrapy.Field()
+    status_headers = scrapy.Field()

@@ -21,6 +21,8 @@ class MysqlPipeline(object):
         if spider.name == "baidu_hot":
             if item.get('hot_title') is not None or item.get('hot_id') is not None:
                 self.insert_news_item(item)
+            elif item.get('status_title') is not None:
+                self.insert_status_item(item)
             else:
                 self.insert_baidu_hot_item(item)
         else:
@@ -44,6 +46,17 @@ class MysqlPipeline(object):
                     PRIMARY KEY(`id`)
                 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
             """
+            sql1 = """
+                CREATE TABLE if NOT EXISTS `spider_baidu_hot_error`(
+                    `id` int NOT NULL AUTO_INCREMENT,
+                    `title` varchar(255) NOT NULL DEFAULT '',
+                    `content` text,
+                    `url` text,
+                    `headers` text,
+                    `datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY(`id`)
+                )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+            """
         else:
             sql = """
                 CREATE TABLE if NOT EXISTS `spider_news`(
@@ -60,13 +73,20 @@ class MysqlPipeline(object):
                     PRIMARY KEY(`id`)
                 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
             """
+            sql1 = ""
         self.cursor.execute(sql)
         self.mysql.commit()
 
         # 每次清空
         if spider.name == "baidu_hot":
+            if sql1 != "":
+                self.cursor.execute(sql1)
+                self.mysql.commit()
             sql_del = "TRUNCATE TABLE `spider_baidu_hot`"
+            sql_del1 = "TRUNCATE TABLE `spider_baidu_hot_error`"
             self.cursor.execute(sql_del)
+            self.mysql.commit()
+            self.cursor.execute(sql_del1)
             self.mysql.commit()
 
     def close_mysql(self):
@@ -142,3 +162,22 @@ class MysqlPipeline(object):
                 print('保存失败："%s"' % tmp_item['title'])
         else:
             print('已存在，不保存："%s"' % tmp_item['title'])
+
+    def insert_status_item(self, item):
+        tmp_item = dict(item)
+        sql0 = """
+            SELECT * FROM `spider_baidu_hot_error` WHERE title = '%s'
+        """ % (tmp_item['status_title'])
+        self.cursor.execute(sql0)
+        exists = self.cursor.fetchone()
+        if exists is not None:
+            sql_del = "DELETE FROM `spider_baidu_hot_error` WHERE id = %d" % exists[0]
+            self.cursor.execute(sql_del)
+        sql = """
+            INSERT INTO `spider_baidu_hot_error`
+            (title,content,url,headers)
+            VALUES
+            ('%s','%s','%s','%s')
+        """ % (tmp_item['status_title'], tmp_item['status_desc'], tmp_item['status_url'], tmp_item['status_headers'])
+        self.cursor.execute(sql)
+        self.mysql.commit()
